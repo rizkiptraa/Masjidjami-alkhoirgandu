@@ -1,33 +1,2811 @@
-<!doctype html><html lang="id"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><meta name="theme-color" content="#06382a"><title>Admin Dashboard — Masjid Jami' Al Khoir</title><link rel="icon" href="assets/logo.jpg"><link rel="stylesheet" href="assets/style.css"><script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script></head><body>
-<div class="top"><div class="container"><span>Masjid Jami' Al Khoir · Jetak, Klitik, Geneng, Ngawi</span><div class="toplinks"><a href="mailto:masjidalkhoirgandu@gmail.com">Email Admin</a><a href="ai.html">Al Khoir AI</a></div></div></div>
-<header class="nav"><div class="container navin">
-<a class="brand" href="index.html"><img src="assets/logo.jpg" alt="Logo Masjid Jami' Al Khoir"><span><strong>Masjid Jami' Al Khoir</strong><small>Dadapan · Klitik · Geneng · Ngawi</small></span></a>
-<button class="hamb" aria-label="Buka menu">☰</button>
-<nav class="links">
-<a data-page="index.html" href="index.html">Beranda</a><a data-page="profil.html" href="profil.html">Profil</a><a data-page="sejarah.html" href="sejarah.html">Sejarah</a><a data-page="kegiatan.html" href="kegiatan.html">Kegiatan</a><a data-page="galeri.html" href="galeri.html">Galeri</a><a data-page="idul-fitri.html" href="idul-fitri.html">Idul Fitri</a><a data-page="idul-adha.html" href="idul-adha.html">Idul Adha</a><a data-page="virtual-tour.html" href="virtual-tour.html">Virtual Tour</a><a data-page="donasi.html" class="navdon" href="donasi.html">Donasi</a><a data-page="kontak.html" href="kontak.html">Kontak</a>
-</nav></div></header>
+<!doctype html>
+<html lang="id">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<meta name="theme-color" content="#06382a">
+<meta name="description" content="Admin Dashboard Masjid Jami' Al Khoir">
+<title>Admin Dashboard — Masjid Jami' Al Khoir</title>
 
-<section class="page-hero"><div class="container"><div class="crumb">Beranda / Admin</div><div class="kicker">Panel Pengurus</div><h1>Admin Dashboard</h1><p>Kelola kegiatan, foto, sejarah, kontak, donasi, dan virtual tour. Area ini hanya untuk dua email admin yang ditetapkan.</p></div></section>
-<section><div class="container">
-<div id="setupNotice" class="notice">Supabase belum dikonfigurasi. Setelah project Supabase dibuat, isi <b>assets/config.js</b> dengan Project URL dan anon key. Jangan pernah menaruh service-role key di frontend.</div>
-<div class="grid2" style="margin-top:20px"><div class="admin-box" id="loginBox"><div class="kicker">Login Admin</div><h2>Masuk sebagai pengurus.</h2><div class="form-grid"><div class="field full"><label>Email</label><input id="email" type="email" placeholder="email admin"></div><div class="field full"><label>Password</label><input id="password" type="password" placeholder="password"></div></div><div class="actions"><button class="btn primary" onclick="login()">Login</button><button class="btn secondary" onclick="signup()">Buat/daftar akun</button></div><p id="loginMsg" class="meta"></p></div>
-<div class="admin-box"><div class="kicker">Status</div><h2 id="status">Belum login</h2><p style="color:var(--muted);line-height:1.7">Hanya <b>masjidalkhoirgandu@gmail.com</b> dan <b>rizkiku255@gmail.com</b> yang diizinkan oleh kebijakan database.</p><button class="btn secondary" onclick="logout()">Keluar</button></div></div>
-<div id="dashboard" class="hidden" style="margin-top:20px"><div class="admin-box"><div class="kicker">Kegiatan Baru</div><h2>Publikasikan kegiatan + banyak foto.</h2><div class="form-grid"><div class="field"><label>Judul</label><input id="title"></div><div class="field"><label>Kategori</label><select id="category"><option>Umum</option><option>Pengajian</option><option>Sosial</option><option>Ramadan</option><option>Idul Fitri</option><option>Idul Adha</option><option>Qurban</option></select></div><div class="field"><label>Tanggal</label><input id="date" type="date"></div><div class="field"><label>Foto (boleh banyak)</label><input id="photos" type="file" accept="image/*" multiple></div><div class="field full"><label>Deskripsi</label><textarea id="desc" placeholder="Rangkaian acara, waktu, pengisi, keterangan..."></textarea></div></div><div class="actions"><button class="btn primary" onclick="saveEvent()">Publikasikan</button></div><p id="eventMsg" class="meta"></p></div>
-<div class="admin-box" style="margin-top:20px"><div class="kicker">Konten Dinamis</div><h2>Kontak, donasi, sejarah & virtual tour.</h2><div class="form-grid"><div class="field"><label>Nomor telepon/WhatsApp</label><input id="phone"></div><div class="field"><label>Informasi donasi</label><input id="donation"></div><div class="field full"><label>Sejarah resmi</label><textarea id="history"></textarea></div><div class="field full"><label>URL Virtual Tour / embed</label><input id="tour"></div></div><div class="actions"><button class="btn primary" onclick="saveSettings()">Simpan Konten</button></div><p id="settingsMsg" class="meta"></p></div>
-<div class="admin-box" style="margin-top:20px"><div class="kicker">Publikasi</div><h2>Daftar kegiatan</h2><div id="events" class="admin-list"></div></div></div>
-</div></section><script src="assets/config.js"></script><script>
-const ADMIN=["masjidalkhoirgandu@gmail.com","rizkiku255@gmail.com"];let sb=null;
-if(window.SUPABASE_URL&&window.SUPABASE_ANON_KEY)sb=window.supabase.createClient(window.SUPABASE_URL,window.SUPABASE_ANON_KEY);
-const $=id=>document.getElementById(id);
-function msg(id,t){$(id).textContent=t}
-async function session(){if(!sb){$("setupNotice").classList.remove("hidden");return} $("setupNotice").classList.add("hidden");const {data}=await sb.auth.getSession();const u=data.session?.user;const ok=u&&ADMIN.includes((u.email||"").toLowerCase());$("dashboard").classList.toggle("hidden",!ok);$("status").textContent=ok?"Login sebagai "+u.email:"Belum login";$("loginBox").classList.toggle("hidden",!!ok);if(ok)loadEvents()}
-async function login(){if(!sb)return msg("loginMsg","Supabase belum dikonfigurasi.");const e=$("email").value.trim().toLowerCase();if(!ADMIN.includes(e))return msg("loginMsg","Email tidak diizinkan.");const {error}=await sb.auth.signInWithPassword({email:e,password:$("password").value});msg("loginMsg",error?error.message:"Login berhasil.");session()}
-async function signup(){if(!sb)return msg("loginMsg","Supabase belum dikonfigurasi.");const e=$("email").value.trim().toLowerCase();if(!ADMIN.includes(e))return msg("loginMsg","Gunakan salah satu email admin yang diizinkan.");const {error}=await sb.auth.signUp({email:e,password:$("password").value});msg("loginMsg",error?error.message:"Akun dibuat. Jika verifikasi email aktif, cek inbox.");}
-async function logout(){if(sb)await sb.auth.signOut();session()}
-async function saveEvent(){if(!sb)return msg("eventMsg","Supabase belum dikonfigurasi.");const {data}=await sb.auth.getSession();const u=data.session?.user;if(!u||!ADMIN.includes((u.email||"").toLowerCase()))return msg("eventMsg","Sesi admin tidak valid.");const files=[...$("photos").files],urls=[];for(const f of files){const path=Date.now()+"-"+Math.random().toString(36).slice(2)+"-"+f.name.replace(/[^a-zA-Z0-9._-]/g,"-");const up=await sb.storage.from("event-images").upload(path,f);if(up.error)return msg("eventMsg",up.error.message);urls.push(sb.storage.from("event-images").getPublicUrl(path).data.publicUrl)}const row={title:$("title").value.trim(),category:$("category").value,event_date:$("date").value,description:$("desc").value.trim(),image_url:urls[0]||"",image_urls:urls,published:true,created_by:u.id};if(!row.title||!row.event_date)return msg("eventMsg","Judul dan tanggal wajib diisi.");const {error}=await sb.from("events").insert(row);msg("eventMsg",error?error.message:"Kegiatan berhasil dipublikasikan.");if(!error){$("title").value="";$("desc").value="";$("photos").value="";loadEvents()}}
-async function loadEvents(){const {data,error}=await sb.from("events").select("*").order("created_at",{ascending:false});if(error)return $("events").innerHTML="<div class='meta'>"+error.message+"</div>";$("events").innerHTML=(data||[]).map(e=>`<div class="admin-item"><div><b>${esc(e.title)}</b><div class="meta">${esc(e.category)} · ${e.event_date}</div></div><button class="btn secondary" onclick="del('${e.id}')">Hapus</button></div>`).join("")||"<div class='empty'>Belum ada kegiatan.</div>";}
-async function del(id){if(!confirm("Hapus kegiatan ini?"))return;const {error}=await sb.from("events").delete().eq("id",id);if(error)alert(error.message);else loadEvents()}
-async function saveSettings(){if(!sb)return msg("settingsMsg","Supabase belum dikonfigurasi.");const {data}=await sb.auth.getSession();const u=data.session?.user;if(!u||!ADMIN.includes((u.email||"").toLowerCase()))return msg("settingsMsg","Sesi admin tidak valid.");const row={id:1,phone:$("phone").value.trim(),donation:$("donation").value.trim(),history:$("history").value.trim(),virtual_tour_url:$("tour").value.trim(),updated_by:u.id,updated_at:new Date().toISOString()};const {error}=await sb.from("site_content").upsert(row);msg("settingsMsg",error?error.message:"Konten berhasil disimpan.")}
-function esc(s){return String(s??"").replace(/[&<>"']/g,m=>({"&":"&amp;","<":"&lt;",">":"&gt;","\"":"&quot;","'":"&#039;"}[m]))}
-document.addEventListener("DOMContentLoaded",()=>{session();document.querySelector(".hamb").onclick=()=>document.querySelector(".links").classList.toggle("open");});
-</script></body></html>
+<link rel="icon" href="assets/logo.jpg">
+<link rel="stylesheet" href="assets/style.css">
+
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script src="assets/config.js"></script>
+
+<style>
+:root{
+  --admin-green:#06382a;
+  --admin-green-2:#0b5a43;
+  --admin-bg:#f4f7f5;
+  --admin-border:#dfe7e2;
+  --admin-danger:#a62b2b;
+}
+
+body{
+  background:var(--admin-bg);
+}
+
+.hidden{
+  display:none!important;
+}
+
+.admin-wrap{
+  padding:35px 0 70px;
+}
+
+.admin-login{
+  max-width:560px;
+  margin:30px auto;
+}
+
+.admin-box{
+  background:#fff;
+  border:1px solid var(--admin-border);
+  border-radius:18px;
+  padding:24px;
+  box-shadow:0 8px 30px rgba(0,0,0,.05);
+}
+
+.admin-box h2{
+  margin:6px 0 18px;
+}
+
+.admin-grid{
+  display:grid;
+  grid-template-columns:repeat(4,1fr);
+  gap:15px;
+  margin-bottom:25px;
+}
+
+.stat{
+  background:#fff;
+  border:1px solid var(--admin-border);
+  border-radius:16px;
+  padding:20px;
+}
+
+.stat small{
+  display:block;
+  color:#68756f;
+  margin-bottom:8px;
+}
+
+.stat strong{
+  font-size:30px;
+  color:var(--admin-green);
+}
+
+.admin-nav{
+  display:flex;
+  gap:8px;
+  flex-wrap:wrap;
+  margin-bottom:20px;
+}
+
+.admin-tab{
+  border:1px solid var(--admin-border);
+  background:#fff;
+  padding:11px 16px;
+  border-radius:10px;
+  cursor:pointer;
+  font-weight:700;
+}
+
+.admin-tab.active{
+  background:var(--admin-green);
+  color:#fff;
+  border-color:var(--admin-green);
+}
+
+.admin-section{
+  display:none;
+}
+
+.admin-section.active{
+  display:block;
+}
+
+.form-grid{
+  display:grid;
+  grid-template-columns:1fr 1fr;
+  gap:15px;
+}
+
+.field{
+  display:flex;
+  flex-direction:column;
+  gap:7px;
+}
+
+.field.full{
+  grid-column:1/-1;
+}
+
+.field label{
+  font-weight:700;
+  font-size:14px;
+}
+
+.field input,
+.field textarea,
+.field select{
+  width:100%;
+  box-sizing:border-box;
+  border:1px solid #cfdad4;
+  border-radius:10px;
+  padding:12px 13px;
+  font:inherit;
+  background:#fff;
+}
+
+.field textarea{
+  min-height:130px;
+  resize:vertical;
+}
+
+.actions{
+  display:flex;
+  gap:10px;
+  flex-wrap:wrap;
+  margin-top:18px;
+}
+
+.btn-danger{
+  background:#fff!important;
+  color:var(--admin-danger)!important;
+  border:1px solid #e3b8b8!important;
+}
+
+.btn-small{
+  padding:8px 11px!important;
+  font-size:13px!important;
+}
+
+.admin-list{
+  display:flex;
+  flex-direction:column;
+  gap:10px;
+  margin-top:18px;
+}
+
+.admin-item{
+  display:flex;
+  justify-content:space-between;
+  align-items:center;
+  gap:15px;
+  border:1px solid var(--admin-border);
+  border-radius:12px;
+  padding:14px;
+  background:#fff;
+}
+
+.admin-item-main{
+  min-width:0;
+}
+
+.admin-item-title{
+  font-weight:800;
+  margin-bottom:4px;
+}
+
+.meta{
+  color:#6d7973;
+  font-size:13px;
+  line-height:1.5;
+}
+
+.notice{
+  padding:13px 15px;
+  border-radius:10px;
+  background:#eef5f1;
+  border:1px solid #d5e5dc;
+  margin-top:15px;
+}
+
+.error{
+  color:#a62b2b;
+}
+
+.success{
+  color:#176b4d;
+}
+
+.photo-grid{
+  display:grid;
+  grid-template-columns:repeat(4,1fr);
+  gap:12px;
+  margin-top:18px;
+}
+
+.photo-card{
+  border:1px solid var(--admin-border);
+  border-radius:12px;
+  overflow:hidden;
+  background:#fff;
+}
+
+.photo-card img{
+  width:100%;
+  aspect-ratio:1/1;
+  object-fit:cover;
+  display:block;
+}
+
+.photo-card-body{
+  padding:10px;
+}
+
+.photo-card input{
+  width:100%;
+  box-sizing:border-box;
+  margin-bottom:8px;
+  padding:8px;
+  border:1px solid #d4ddd8;
+  border-radius:8px;
+}
+
+.user-bar{
+  display:flex;
+  justify-content:space-between;
+  align-items:center;
+  gap:15px;
+  flex-wrap:wrap;
+  margin-bottom:20px;
+}
+
+.modal{
+  position:fixed;
+  inset:0;
+  background:rgba(0,0,0,.55);
+  display:none;
+  align-items:center;
+  justify-content:center;
+  padding:20px;
+  z-index:9999;
+}
+
+.modal.show{
+  display:flex;
+}
+
+.modal-box{
+  width:min(850px,100%);
+  max-height:90vh;
+  overflow:auto;
+  background:#fff;
+  border-radius:18px;
+  padding:24px;
+}
+
+.modal-head{
+  display:flex;
+  justify-content:space-between;
+  align-items:center;
+  gap:15px;
+  margin-bottom:15px;
+}
+
+.close{
+  border:0;
+  background:#eee;
+  width:38px;
+  height:38px;
+  border-radius:50%;
+  cursor:pointer;
+  font-size:20px;
+}
+
+.empty{
+  text-align:center;
+  padding:30px;
+  color:#718078;
+  border:1px dashed #ccd8d1;
+  border-radius:12px;
+}
+
+@media(max-width:900px){
+  .admin-grid{
+    grid-template-columns:repeat(2,1fr);
+  }
+
+  .photo-grid{
+    grid-template-columns:repeat(3,1fr);
+  }
+}
+
+@media(max-width:600px){
+  .admin-wrap{
+    padding-top:20px;
+  }
+
+  .admin-box{
+    padding:17px;
+  }
+
+  .admin-grid{
+    grid-template-columns:1fr 1fr;
+  }
+
+  .form-grid{
+    grid-template-columns:1fr;
+  }
+
+  .field.full{
+    grid-column:auto;
+  }
+
+  .photo-grid{
+    grid-template-columns:repeat(2,1fr);
+  }
+
+  .admin-item{
+    align-items:flex-start;
+    flex-direction:column;
+  }
+
+  .admin-item .actions{
+    margin-top:5px;
+  }
+}
+</style>
+</head>
+
+<body>
+
+<div class="top">
+  <div class="container">
+    <span>Masjid Jami' Al Khoir · Jetak, Klitik, Geneng, Ngawi</span>
+    <div class="toplinks">
+      <a href="mailto:masjidalkhoirgandu@gmail.com">Email Admin</a>
+      <a href="ai.html">Al Khoir AI</a>
+    </div>
+  </div>
+</div>
+
+<header class="nav">
+  <div class="container navin">
+
+    <a class="brand" href="index.html">
+      <img src="assets/logo.jpg" alt="Logo Masjid Jami' Al Khoir">
+      <span>
+        <strong>Masjid Jami' Al Khoir</strong>
+        <small>Dadapan · Klitik · Geneng · Ngawi</small>
+      </span>
+    </a>
+
+    <button class="hamb" aria-label="Buka menu">☰</button>
+
+    <nav class="links">
+      <a href="index.html">Beranda</a>
+      <a href="profil.html">Profil</a>
+      <a href="sejarah.html">Sejarah</a>
+      <a href="kegiatan.html">Kegiatan</a>
+      <a href="galeri.html">Galeri</a>
+      <a href="idul-fitri.html">Idul Fitri</a>
+      <a href="idul-adha.html">Idul Adha</a>
+      <a href="virtual-tour.html">Virtual Tour</a>
+      <a href="donasi.html" class="navdon">Donasi</a>
+      <a href="kontak.html">Kontak</a>
+    </nav>
+
+  </div>
+</header>
+
+<section class="page-hero">
+  <div class="container">
+    <div class="crumb">Beranda / Admin</div>
+    <div class="kicker">Panel Pengurus</div>
+    <h1>Admin Dashboard</h1>
+    <p>Kelola kegiatan, galeri, dan informasi website Masjid Jami' Al Khoir.</p>
+  </div>
+</section>
+
+<main class="admin-wrap">
+<div class="container">
+
+<!-- LOGIN -->
+<section id="loginView" class="admin-login">
+  <div class="admin-box">
+
+    <div class="kicker">AREA PENGURUS</div>
+    <h2>Login Admin</h2>
+    <p class="meta">
+      Gunakan salah satu akun admin yang sudah terdaftar.
+    </p>
+
+    <div class="form-grid">
+
+      <div class="field full">
+        <label>Email</label>
+        <input id="loginEmail" type="email" autocomplete="username"
+               placeholder="email admin">
+      </div>
+
+      <div class="field full">
+        <label>Password</label>
+        <input id="loginPassword" type="password"
+               autocomplete="current-password"
+               placeholder="password">
+      </div>
+
+    </div>
+
+    <div class="actions">
+      <button class="btn primary" id="loginBtn">Masuk</button>
+    </div>
+
+    <p id="loginMsg" class="meta"></p>
+
+  </div>
+</section>
+
+
+<!-- ADMIN APP -->
+<section id="adminView" class="hidden">
+
+  <div class="user-bar">
+    <div>
+      <div class="kicker">PENGURUS</div>
+      <strong id="currentUser">-</strong>
+    </div>
+
+    <button class="btn secondary" id="logoutBtn">
+      Keluar
+    </button>
+  </div>
+
+
+  <!-- STATISTICS -->
+
+  <div class="admin-grid">
+
+    <div class="stat">
+      <small>Kegiatan</small>
+      <strong id="statEvents">0</strong>
+    </div>
+
+    <div class="stat">
+      <small>Album</small>
+      <strong id="statAlbums">0</strong>
+    </div>
+
+    <div class="stat">
+      <small>Foto</small>
+      <strong id="statImages">0</strong>
+    </div>
+
+    <div class="stat">
+      <small>Status</small>
+      <strong style="font-size:18px">AKTIF</strong>
+    </div>
+
+  </div>
+
+
+  <!-- TABS -->
+
+  <div class="admin-nav">
+
+    <button class="admin-tab active" data-tab="eventsSection">
+      📅 Kegiatan
+    </button>
+
+    <button class="admin-tab" data-tab="gallerySection">
+      🖼️ Galeri
+    </button>
+
+    <button class="admin-tab" data-tab="settingsSection">
+      ⚙️ Pengaturan
+    </button>
+
+  </div>
+
+
+  <!-- EVENTS -->
+
+  <section id="eventsSection" class="admin-section active">
+
+    <div class="admin-box">
+
+      <div class="kicker">PUBLIKASI</div>
+      <h2 id="eventFormTitle">Tambah Kegiatan</h2>
+
+      <input type="hidden" id="eventId">
+
+      <div class="form-grid">
+
+        <div class="field full">
+          <label>Judul Kegiatan *</label>
+          <input id="eventTitle"
+                 placeholder="Contoh: Pengajian Akbar Masjid Al Khoir">
+        </div>
+
+        <div class="field">
+          <label>Tanggal & Waktu Mulai *</label>
+          <input id="eventStart" type="datetime-local">
+        </div>
+
+        <div class="field">
+          <label>Tanggal & Waktu Selesai</label>
+          <input id="eventEnd" type="datetime-local">
+        </div>
+
+        <div class="field full">
+          <label>Lokasi</label>
+          <input id="eventLocation"
+                 placeholder="Masjid Jami' Al Khoir">
+        </div>
+
+        <div class="field full">
+          <label>Link Pendaftaran</label>
+          <input id="eventRegistration"
+                 type="url"
+                 placeholder="https://...">
+        </div>
+
+        <div class="field full">
+          <label>Deskripsi</label>
+          <textarea id="eventDescription"
+                    placeholder="Jelaskan kegiatan..."></textarea>
+        </div>
+
+        <div class="field full">
+          <label>Foto Sampul</label>
+          <input id="eventCover"
+                 type="file"
+                 accept="image/*">
+        </div>
+
+        <div class="field">
+          <label>Status</label>
+          <select id="eventPublished">
+            <option value="true">Publikasikan</option>
+            <option value="false">Simpan sebagai draft</option>
+          </select>
+        </div>
+
+      </div>
+
+      <div class="actions">
+
+        <button class="btn primary" id="saveEventBtn">
+          Simpan Kegiatan
+        </button>
+
+        <button class="btn secondary hidden" id="cancelEventBtn">
+          Batal Edit
+        </button>
+
+      </div>
+
+      <p id="eventMsg" class="meta"></p>
+
+    </div>
+
+
+    <div class="admin-box" style="margin-top:20px">
+
+      <div class="kicker">DAFTAR</div>
+      <h2>Kegiatan</h2>
+
+      <div id="eventsList" class="admin-list">
+        <div class="empty">Memuat...</div>
+      </div>
+
+    </div>
+
+  </section>
+
+
+  <!-- GALLERY -->
+
+  <section id="gallerySection" class="admin-section">
+
+    <div class="admin-box">
+
+      <div class="kicker">DOKUMENTASI</div>
+      <h2 id="albumFormTitle">Buat Album Galeri</h2>
+
+      <input type="hidden" id="albumId">
+
+      <div class="form-grid">
+
+        <div class="field full">
+          <label>Nama Album *</label>
+          <input id="albumTitle"
+                 placeholder="Contoh: Idul Adha 2026">
+        </div>
+
+        <div class="field">
+          <label>Tanggal Kegiatan</label>
+          <input id="albumDate" type="date">
+        </div>
+
+        <div class="field">
+          <label>Status</label>
+          <select id="albumPublished">
+            <option value="true">Publikasikan</option>
+            <option value="false">Draft</option>
+          </select>
+        </div>
+
+        <div class="field full">
+          <label>Deskripsi</label>
+          <textarea id="albumDescription"
+                    placeholder="Deskripsi album..."></textarea>
+        </div>
+
+        <div class="field full">
+          <label>Cover Album</label>
+          <input id="albumCover"
+                 type="file"
+                 accept="image/*">
+        </div>
+
+      </div>
+
+      <div class="actions">
+
+        <button class="btn primary" id="saveAlbumBtn">
+          Simpan Album
+        </button>
+
+        <button class="btn secondary hidden" id="cancelAlbumBtn">
+          Batal Edit
+        </button>
+
+      </div>
+
+      <p id="albumMsg" class="meta"></p>
+
+    </div>
+
+
+    <div class="admin-box" style="margin-top:20px">
+
+      <div class="kicker">ALBUM</div>
+      <h2>Album Galeri</h2>
+
+      <div id="albumsList" class="admin-list">
+        <div class="empty">Memuat...</div>
+      </div>
+
+    </div>
+
+
+    <!-- PHOTO MODAL -->
+
+    <div id="photoModal" class="modal">
+
+      <div class="modal-box">
+
+        <div class="modal-head">
+
+          <div>
+            <div class="kicker">ALBUM</div>
+            <h2 id="photoModalTitle">Foto Album</h2>
+          </div>
+
+          <button class="close" id="closePhotoModal">
+            ×
+          </button>
+
+        </div>
+
+
+        <div class="admin-box">
+
+          <div class="field">
+
+            <label>Upload Banyak Foto</label>
+
+            <input id="galleryFiles"
+                   type="file"
+                   accept="image/*"
+                   multiple>
+
+          </div>
+
+          <div class="actions">
+
+            <button class="btn primary" id="uploadGalleryBtn">
+              Upload Foto
+            </button>
+
+          </div>
+
+          <p id="galleryMsg" class="meta"></p>
+
+        </div>
+
+
+        <div id="photoList" class="photo-grid"></div>
+
+      </div>
+
+    </div>
+
+  </section>
+
+
+  <!-- SETTINGS -->
+
+  <section id="settingsSection" class="admin-section">
+
+    <div class="admin-box">
+
+      <div class="kicker">WEBSITE</div>
+      <h2>Pengaturan Masjid</h2>
+
+      <div class="form-grid">
+
+        <div class="field">
+          <label>Nama Masjid</label>
+          <input id="setMosqueName">
+        </div>
+
+        <div class="field">
+          <label>Tagline</label>
+          <input id="setTagline">
+        </div>
+
+        <div class="field full">
+          <label>Deskripsi</label>
+          <textarea id="setDescription"></textarea>
+        </div>
+
+        <div class="field full">
+          <label>Alamat</label>
+          <textarea id="setAddress"></textarea>
+        </div>
+
+        <div class="field">
+          <label>Telepon</label>
+          <input id="setPhone">
+        </div>
+
+        <div class="field">
+          <label>WhatsApp</label>
+          <input id="setWhatsapp">
+        </div>
+
+        <div class="field">
+          <label>Email</label>
+          <input id="setEmail" type="email">
+        </div>
+
+        <div class="field">
+          <label>Tahun Berdiri</label>
+          <input id="setEstablished" type="number">
+        </div>
+
+        <div class="field full">
+          <label>Google Maps URL</label>
+          <input id="setMaps" type="url">
+        </div>
+
+        <div class="field">
+          <label>Instagram URL</label>
+          <input id="setInstagram" type="url">
+        </div>
+
+        <div class="field">
+          <label>Facebook URL</label>
+          <input id="setFacebook" type="url">
+        </div>
+
+        <div class="field">
+          <label>YouTube URL</label>
+          <input id="setYoutube" type="url">
+        </div>
+
+        <div class="field">
+          <label>TikTok URL</label>
+          <input id="setTiktok" type="url">
+        </div>
+
+        <div class="field full">
+          <label>Visi</label>
+          <textarea id="setVision"></textarea>
+        </div>
+
+        <div class="field full">
+          <label>Misi</label>
+          <textarea id="setMission"></textarea>
+        </div>
+
+        <div class="field">
+          <label>Logo URL</label>
+          <input id="setLogo" type="url">
+        </div>
+
+        <div class="field">
+          <label>Hero Image URL</label>
+          <input id="setHero" type="url">
+        </div>
+
+      </div>
+
+      <div class="actions">
+
+        <button class="btn primary" id="saveSettingsBtn">
+          Simpan Pengaturan
+        </button>
+
+      </div>
+
+      <p id="settingsMsg" class="meta"></p>
+
+    </div>
+
+  </section>
+
+</section>
+
+</div>
+</main>
+
+
+<footer>
+  <div class="container copy">
+    © <span data-year></span> Masjid Jami' Al Khoir.
+  </div>
+</footer>
+
+
+<script>
+/* =========================================================
+   SUPABASE
+========================================================= */
+
+const ADMIN_EMAILS = [
+  "masjidalkhoirgandu@gmail.com",
+  "rizkiku255@gmail.com"
+];
+
+let sb = null;
+let currentUser = null;
+let currentAlbumId = null;
+
+const $ = id => document.getElementById(id);
+
+function show(id){
+  $(id).classList.remove("hidden");
+}
+
+function hide(id){
+  $(id).classList.add("hidden");
+}
+
+function setMsg(id,text,type=""){
+  const el = $(id);
+  el.textContent = text;
+  el.className = "meta " + type;
+}
+
+function escapeHtml(value){
+  return String(value ?? "")
+    .replace(/&/g,"&amp;")
+    .replace(/</g,"&lt;")
+    .replace(/>/g,"&gt;")
+    .replace(/"/g,"&quot;")
+    .replace(/'/g,"&#039;");
+}
+
+function slugify(text){
+  return String(text || "")
+    .toLowerCase()
+    .trim()
+    .replace(/[^a-z0-9\s-]/g,"")
+    .replace(/\s+/g,"-")
+    .replace(/-+/g,"-")
+    .replace(/^-|-$/g,"");
+}
+
+function formatDate(value){
+  if(!value) return "-";
+
+  const d = new Date(value);
+
+  if(Number.isNaN(d.getTime())) return value;
+
+  return d.toLocaleString("id-ID",{
+    dateStyle:"medium",
+    timeStyle:"short"
+  });
+}
+
+function formatDateOnly(value){
+  if(!value) return "-";
+
+  const d = new Date(value + "T00:00:00");
+
+  return d.toLocaleDateString("id-ID",{
+    day:"numeric",
+    month:"long",
+    year:"numeric"
+  });
+}
+
+
+/* =========================================================
+   INITIALIZE
+========================================================= */
+
+async function init(){
+
+  if(
+    !window.SUPABASE_URL ||
+    !window.SUPABASE_ANON_KEY
+  ){
+    setMsg(
+      "loginMsg",
+      "Supabase belum dikonfigurasi. Periksa assets/config.js.",
+      "error"
+    );
+    return;
+  }
+
+  sb = window.supabase.createClient(
+    window.SUPABASE_URL,
+    window.SUPABASE_ANON_KEY
+  );
+
+  const {
+    data,
+    error
+  } = await sb.auth.getSession();
+
+  if(error){
+    setMsg("loginMsg",error.message,"error");
+    return;
+  }
+
+  await handleSession(data.session);
+
+  sb.auth.onAuthStateChange(async (_event,session)=>{
+    await handleSession(session);
+  });
+}
+
+
+/* =========================================================
+   SESSION
+========================================================= */
+
+async function handleSession(session){
+
+  currentUser = session?.user || null;
+
+  if(!currentUser){
+
+    show("loginView");
+    hide("adminView");
+
+    return;
+  }
+
+  const email =
+    (currentUser.email || "").toLowerCase();
+
+  if(!ADMIN_EMAILS.includes(email)){
+
+    await sb.auth.signOut();
+
+    show("loginView");
+    hide("adminView");
+
+    setMsg(
+      "loginMsg",
+      "Akun ini tidak memiliki akses admin.",
+      "error"
+    );
+
+    return;
+  }
+
+  hide("loginView");
+  show("adminView");
+
+  $("currentUser").textContent =
+    currentUser.email;
+
+  await loadAll();
+}
+
+
+/* =========================================================
+   LOGIN / LOGOUT
+========================================================= */
+
+async function login(){
+
+  const email =
+    $("loginEmail").value.trim().toLowerCase();
+
+  const password =
+    $("loginPassword").value;
+
+  if(!email || !password){
+
+    setMsg(
+      "loginMsg",
+      "Email dan password wajib diisi.",
+      "error"
+    );
+
+    return;
+  }
+
+  if(!ADMIN_EMAILS.includes(email)){
+
+    setMsg(
+      "loginMsg",
+      "Email tersebut bukan email admin.",
+      "error"
+    );
+
+    return;
+  }
+
+  $("loginBtn").disabled = true;
+
+  setMsg(
+    "loginMsg",
+    "Sedang login..."
+  );
+
+  const {
+    error
+  } = await sb.auth.signInWithPassword({
+    email,
+    password
+  });
+
+  $("loginBtn").disabled = false;
+
+  if(error){
+
+    setMsg(
+      "loginMsg",
+      error.message,
+      "error"
+    );
+
+    return;
+  }
+
+  setMsg(
+    "loginMsg",
+    "Login berhasil.",
+    "success"
+  );
+}
+
+async function logout(){
+
+  if(sb){
+    await sb.auth.signOut();
+  }
+}
+
+
+/* =========================================================
+   LOAD ALL
+========================================================= */
+
+async function loadAll(){
+
+  await Promise.all([
+    loadEvents(),
+    loadAlbums(),
+    loadSettings()
+  ]);
+
+  await loadStats();
+}
+
+
+/* =========================================================
+   EVENTS
+========================================================= */
+
+async function loadEvents(){
+
+  const {
+    data,
+    error
+  } = await sb
+    .from("events")
+    .select("*")
+    .order("start_date",{ascending:false});
+
+  if(error){
+
+    $("eventsList").innerHTML =
+      `<div class="empty error">${escapeHtml(error.message)}</div>`;
+
+    return;
+  }
+
+  const events = data || [];
+
+  $("statEvents").textContent =
+    events.length;
+
+  if(!events.length){
+
+    $("eventsList").innerHTML =
+      `<div class="empty">
+        Belum ada kegiatan.
+      </div>`;
+
+    return;
+  }
+
+  $("eventsList").innerHTML =
+    events.map(event => {
+
+      const status =
+        event.is_published
+          ? "Publik"
+          : "Draft";
+
+      return `
+        <div class="admin-item">
+
+          <div class="admin-item-main">
+
+            <div class="admin-item-title">
+              ${escapeHtml(event.title)}
+            </div>
+
+            <div class="meta">
+              ${escapeHtml(formatDate(event.start_date))}
+              ·
+              ${escapeHtml(event.location || "Lokasi belum diisi")}
+              ·
+              ${status}
+            </div>
+
+          </div>
+
+          <div class="actions">
+
+            <button
+              class="btn secondary btn-small"
+              onclick="editEvent('${event.id}')">
+              Edit
+            </button>
+
+            <button
+              class="btn btn-danger btn-small"
+              onclick="deleteEvent('${event.id}')">
+              Hapus
+            </button>
+
+          </div>
+
+        </div>
+      `;
+
+    }).join("");
+}
+
+
+/* =========================================================
+   EVENT SAVE
+========================================================= */
+
+async function saveEvent(){
+
+  if(!currentUser){
+    setMsg("eventMsg","Sesi admin tidak ditemukan.","error");
+    return;
+  }
+
+  const id =
+    $("eventId").value.trim();
+
+  const title =
+    $("eventTitle").value.trim();
+
+  const start =
+    $("eventStart").value;
+
+  const end =
+    $("eventEnd").value;
+
+  const description =
+    $("eventDescription").value.trim();
+
+  const location =
+    $("eventLocation").value.trim();
+
+  const registration =
+    $("eventRegistration").value.trim();
+
+  const isPublished =
+    $("eventPublished").value === "true";
+
+  if(!title || !start){
+
+    setMsg(
+      "eventMsg",
+      "Judul dan tanggal mulai wajib diisi.",
+      "error"
+    );
+
+    return;
+  }
+
+  $("saveEventBtn").disabled = true;
+
+  setMsg(
+    "eventMsg",
+    "Menyimpan kegiatan..."
+  );
+
+  let coverUrl = "";
+
+  const existingEvent = id
+    ? await getEvent(id)
+    : null;
+
+  if(existingEvent){
+    coverUrl =
+      existingEvent.cover_image_url || "";
+  }
+
+  const file =
+    $("eventCover").files[0];
+
+  if(file){
+
+    const upload =
+      await uploadFile(
+        file,
+        "site-assets",
+        "events"
+      );
+
+    if(upload.error){
+
+      $("saveEventBtn").disabled = false;
+
+      setMsg(
+        "eventMsg",
+        upload.error,
+        "error"
+      );
+
+      return;
+    }
+
+    coverUrl =
+      upload.publicUrl;
+  }
+
+  const row = {
+
+    title,
+
+    slug:
+      slugify(title) +
+      (id ? "-" + id.slice(0,8) : ""),
+
+    description,
+
+    cover_image_url:
+      coverUrl,
+
+    start_date:
+      new Date(start).toISOString(),
+
+    end_date:
+      end
+        ? new Date(end).toISOString()
+        : null,
+
+    location,
+
+    registration_url:
+      registration,
+
+    is_published:
+      isPublished,
+
+    created_by:
+      existingEvent?.created_by ||
+      currentUser.id,
+
+    updated_at:
+      new Date().toISOString()
+
+  };
+
+  let result;
+
+  if(id){
+
+    result =
+      await sb
+        .from("events")
+        .update(row)
+        .eq("id",id);
+
+  }else{
+
+    result =
+      await sb
+        .from("events")
+        .insert(row);
+
+  }
+
+  $("saveEventBtn").disabled = false;
+
+  if(result.error){
+
+    setMsg(
+      "eventMsg",
+      result.error.message,
+      "error"
+    );
+
+    return;
+  }
+
+  setMsg(
+    "eventMsg",
+    id
+      ? "Kegiatan berhasil diperbarui."
+      : "Kegiatan berhasil ditambahkan.",
+    "success"
+  );
+
+  resetEventForm();
+
+  await loadEvents();
+  await loadStats();
+}
+
+
+async function getEvent(id){
+
+  const {
+    data,
+    error
+  } = await sb
+    .from("events")
+    .select("*")
+    .eq("id",id)
+    .single();
+
+  if(error){
+    return null;
+  }
+
+  return data;
+}
+
+
+/* =========================================================
+   EDIT EVENT
+========================================================= */
+
+async function editEvent(id){
+
+  const event =
+    await getEvent(id);
+
+  if(!event){
+
+    setMsg(
+      "eventMsg",
+      "Data kegiatan tidak ditemukan.",
+      "error"
+    );
+
+    return;
+  }
+
+  $("eventId").value =
+    event.id;
+
+  $("eventTitle").value =
+    event.title || "";
+
+  $("eventDescription").value =
+    event.description || "";
+
+  $("eventLocation").value =
+    event.location || "";
+
+  $("eventRegistration").value =
+    event.registration_url || "";
+
+  $("eventPublished").value =
+    event.is_published
+      ? "true"
+      : "false";
+
+  $("eventStart").value =
+    toDateTimeLocal(event.start_date);
+
+  $("eventEnd").value =
+    toDateTimeLocal(event.end_date);
+
+  $("eventCover").value = "";
+
+  $("eventFormTitle").textContent =
+    "Edit Kegiatan";
+
+  $("saveEventBtn").textContent =
+    "Simpan Perubahan";
+
+  show("cancelEventBtn");
+
+  window.scrollTo({
+    top:0,
+    behavior:"smooth"
+  });
+}
+
+
+function resetEventForm(){
+
+  $("eventId").value = "";
+
+  $("eventTitle").value = "";
+
+  $("eventDescription").value = "";
+
+  $("eventLocation").value = "";
+
+  $("eventRegistration").value = "";
+
+  $("eventStart").value = "";
+
+  $("eventEnd").value = "";
+
+  $("eventCover").value = "";
+
+  $("eventPublished").value = "true";
+
+  $("eventFormTitle").textContent =
+    "Tambah Kegiatan";
+
+  $("saveEventBtn").textContent =
+    "Simpan Kegiatan";
+
+  hide("cancelEventBtn");
+}
+
+
+async function deleteEvent(id){
+
+  if(!confirm(
+    "Hapus kegiatan ini?\n\nTindakan ini tidak dapat dibatalkan."
+  )){
+    return;
+  }
+
+  const {
+    error
+  } = await sb
+    .from("events")
+    .delete()
+    .eq("id",id);
+
+  if(error){
+
+    alert(error.message);
+
+    return;
+  }
+
+  await loadEvents();
+  await loadStats();
+}
+
+
+/* =========================================================
+   GALLERY ALBUMS
+========================================================= */
+
+async function loadAlbums(){
+
+  const {
+    data,
+    error
+  } = await sb
+    .from("gallery_albums")
+    .select("*")
+    .order("event_date",{ascending:false});
+
+  if(error){
+
+    $("albumsList").innerHTML =
+      `<div class="empty error">${escapeHtml(error.message)}</div>`;
+
+    return;
+  }
+
+  const albums =
+    data || [];
+
+  $("statAlbums").textContent =
+    albums.length;
+
+  if(!albums.length){
+
+    $("albumsList").innerHTML =
+      `<div class="empty">
+        Belum ada album galeri.
+      </div>`;
+
+    return;
+  }
+
+  $("albumsList").innerHTML =
+    albums.map(album => {
+
+      return `
+        <div class="admin-item">
+
+          <div class="admin-item-main">
+
+            <div class="admin-item-title">
+              ${escapeHtml(album.title)}
+            </div>
+
+            <div class="meta">
+              ${escapeHtml(
+                formatDateOnly(album.event_date)
+              )}
+              ·
+              ${album.is_published
+                ? "Publik"
+                : "Draft"}
+            </div>
+
+          </div>
+
+          <div class="actions">
+
+            <button
+              class="btn primary btn-small"
+              onclick="openAlbum('${album.id}')">
+              Foto
+            </button>
+
+            <button
+              class="btn secondary btn-small"
+              onclick="editAlbum('${album.id}')">
+              Edit
+            </button>
+
+            <button
+              class="btn btn-danger btn-small"
+              onclick="deleteAlbum('${album.id}')">
+              Hapus
+            </button>
+
+          </div>
+
+        </div>
+      `;
+
+    }).join("");
+}
+
+
+/* =========================================================
+   SAVE ALBUM
+========================================================= */
+
+async function saveAlbum(){
+
+  if(!currentUser){
+
+    setMsg(
+      "albumMsg",
+      "Sesi admin tidak ditemukan.",
+      "error"
+    );
+
+    return;
+  }
+
+  const id =
+    $("albumId").value.trim();
+
+  const title =
+    $("albumTitle").value.trim();
+
+  const description =
+    $("albumDescription").value.trim();
+
+  const eventDate =
+    $("albumDate").value;
+
+  const isPublished =
+    $("albumPublished").value === "true";
+
+  if(!title){
+
+    setMsg(
+      "albumMsg",
+      "Nama album wajib diisi.",
+      "error"
+    );
+
+    return;
+  }
+
+  $("saveAlbumBtn").disabled = true;
+
+  setMsg(
+    "albumMsg",
+    "Menyimpan album..."
+  );
+
+  let coverUrl = "";
+
+  if(id){
+
+    const {
+      data
+    } = await sb
+      .from("gallery_albums")
+      .select("cover_image_url")
+      .eq("id",id)
+      .single();
+
+    coverUrl =
+      data?.cover_image_url || "";
+  }
+
+  const file =
+    $("albumCover").files[0];
+
+  if(file){
+
+    const upload =
+      await uploadFile(
+        file,
+        "gallery",
+        "covers"
+      );
+
+    if(upload.error){
+
+      $("saveAlbumBtn").disabled = false;
+
+      setMsg(
+        "albumMsg",
+        upload.error,
+        "error"
+      );
+
+      return;
+    }
+
+    coverUrl =
+      upload.publicUrl;
+  }
+
+  const row = {
+
+    title,
+
+    slug:
+      slugify(title) +
+      (id ? "-" + id.slice(0,8) : ""),
+
+    description,
+
+    cover_image_url:
+      coverUrl,
+
+    event_date:
+      eventDate || null,
+
+    is_published:
+      isPublished,
+
+    created_by:
+      currentUser.id,
+
+    updated_at:
+      new Date().toISOString()
+
+  };
+
+  let result;
+
+  if(id){
+
+    result =
+      await sb
+        .from("gallery_albums")
+        .update(row)
+        .eq("id",id);
+
+  }else{
+
+    result =
+      await sb
+        .from("gallery_albums")
+        .insert(row);
+
+  }
+
+  $("saveAlbumBtn").disabled = false;
+
+  if(result.error){
+
+    setMsg(
+      "albumMsg",
+      result.error.message,
+      "error"
+    );
+
+    return;
+  }
+
+  setMsg(
+    "albumMsg",
+    id
+      ? "Album berhasil diperbarui."
+      : "Album berhasil dibuat.",
+    "success"
+  );
+
+  resetAlbumForm();
+
+  await loadAlbums();
+  await loadStats();
+}
+
+
+async function editAlbum(id){
+
+  const {
+    data,
+    error
+  } = await sb
+    .from("gallery_albums")
+    .select("*")
+    .eq("id",id)
+    .single();
+
+  if(error){
+
+    setMsg(
+      "albumMsg",
+      error.message,
+      "error"
+    );
+
+    return;
+  }
+
+  $("albumId").value =
+    data.id;
+
+  $("albumTitle").value =
+    data.title || "";
+
+  $("albumDescription").value =
+    data.description || "";
+
+  $("albumDate").value =
+    data.event_date || "";
+
+  $("albumPublished").value =
+    data.is_published
+      ? "true"
+      : "false";
+
+  $("albumCover").value = "";
+
+  $("albumFormTitle").textContent =
+    "Edit Album";
+
+  $("saveAlbumBtn").textContent =
+    "Simpan Perubahan";
+
+  show("cancelAlbumBtn");
+
+  document
+    .querySelector('[data-tab="gallerySection"]')
+    .click();
+
+  window.scrollTo({
+    top:0,
+    behavior:"smooth"
+  });
+}
+
+
+function resetAlbumForm(){
+
+  $("albumId").value = "";
+
+  $("albumTitle").value = "";
+
+  $("albumDescription").value = "";
+
+  $("albumDate").value = "";
+
+  $("albumPublished").value =
+    "true";
+
+  $("albumCover").value = "";
+
+  $("albumFormTitle").textContent =
+    "Buat Album Galeri";
+
+  $("saveAlbumBtn").textContent =
+    "Simpan Album";
+
+  hide("cancelAlbumBtn");
+}
+
+
+/* =========================================================
+   OPEN ALBUM PHOTOS
+========================================================= */
+
+async function openAlbum(id){
+
+  currentAlbumId = id;
+
+  const {
+    data:album,
+    error
+  } = await sb
+    .from("gallery_albums")
+    .select("id,title")
+    .eq("id",id)
+    .single();
+
+  if(error){
+
+    alert(error.message);
+
+    return;
+  }
+
+  $("photoModalTitle").textContent =
+    album.title;
+
+  $("photoModal").classList.add("show");
+
+  $("galleryFiles").value = "";
+
+  setMsg("galleryMsg","");
+
+  await loadPhotos(id);
+}
+
+
+async function loadPhotos(albumId){
+
+  const {
+    data,
+    error
+  } = await sb
+    .from("gallery_images")
+    .select("*")
+    .eq("album_id",albumId)
+    .order("sort_order",{ascending:true})
+    .order("created_at",{ascending:true});
+
+  if(error){
+
+    $("photoList").innerHTML =
+      `<div class="empty error">${escapeHtml(error.message)}</div>`;
+
+    return;
+  }
+
+  const photos =
+    data || [];
+
+  if(!photos.length){
+
+    $("photoList").innerHTML =
+      `<div class="empty">
+        Belum ada foto dalam album ini.
+      </div>`;
+
+    return;
+  }
+
+  $("photoList").innerHTML =
+    photos.map(photo => {
+
+      return `
+        <div class="photo-card">
+
+          <img
+            src="${escapeHtml(photo.image_url)}"
+            alt="${escapeHtml(photo.caption || "Foto galeri")}">
+
+          <div class="photo-card-body">
+
+            <input
+              id="caption-${photo.id}"
+              value="${escapeHtml(photo.caption || "")}"
+              placeholder="Caption foto">
+
+            <input
+              id="sort-${photo.id}"
+              type="number"
+              value="${Number(photo.sort_order || 0)}"
+              placeholder="Urutan">
+
+            <button
+              class="btn secondary btn-small"
+              onclick="updatePhoto('${photo.id}')">
+              Simpan
+
+            </button>
+
+            <button
+              class="btn btn-danger btn-small"
+              style="margin-top:5px"
+              onclick="deletePhoto('${photo.id}')">
+              Hapus Foto
+            </button>
+
+          </div>
+
+        </div>
+      `;
+
+    }).join("");
+
+  $("statImages").textContent =
+    await countImages();
+}
+
+
+/* =========================================================
+   UPLOAD GALLERY
+========================================================= */
+
+async function uploadGallery(){
+
+  if(!currentAlbumId){
+
+    setMsg(
+      "galleryMsg",
+      "Album belum dipilih.",
+      "error"
+    );
+
+    return;
+  }
+
+  const files =
+    [...$("galleryFiles").files];
+
+  if(!files.length){
+
+    setMsg(
+      "galleryMsg",
+      "Pilih minimal satu foto.",
+      "error"
+    );
+
+    return;
+  }
+
+  $("uploadGalleryBtn").disabled = true;
+
+  let uploaded = 0;
+
+  for(const file of files){
+
+    setMsg(
+      "galleryMsg",
+      `Mengunggah ${uploaded + 1} dari ${files.length}...`
+    );
+
+    const upload =
+      await uploadFile(
+        file,
+        "gallery",
+        "photos"
+      );
+
+    if(upload.error){
+
+      $("uploadGalleryBtn").disabled = false;
+
+      setMsg(
+        "galleryMsg",
+        upload.error,
+        "error"
+      );
+
+      return;
+    }
+
+    const {
+      count
+    } = await sb
+      .from("gallery_images")
+      .select("id",{count:"exact",head:true})
+      .eq("album_id",currentAlbumId);
+
+    const insert =
+      await sb
+        .from("gallery_images")
+        .insert({
+
+          album_id:
+            currentAlbumId,
+
+          image_url:
+            upload.publicUrl,
+
+          caption:
+            "",
+
+          sort_order:
+            (count || 0) + uploaded
+
+        });
+
+    if(insert.error){
+
+      $("uploadGalleryBtn").disabled = false;
+
+      setMsg(
+        "galleryMsg",
+        insert.error.message,
+        "error"
+      );
+
+      return;
+    }
+
+    uploaded++;
+  }
+
+  $("uploadGalleryBtn").disabled = false;
+
+  $("galleryFiles").value = "";
+
+  setMsg(
+    "galleryMsg",
+    `${uploaded} foto berhasil diunggah.`,
+    "success"
+  );
+
+  await loadPhotos(currentAlbumId);
+}
+
+
+/* =========================================================
+   UPDATE PHOTO
+========================================================= */
+
+async function updatePhoto(id){
+
+  const caption =
+    $(`caption-${id}`).value.trim();
+
+  const sortOrder =
+    Number(
+      $(`sort-${id}`).value || 0
+    );
+
+  const {
+    error
+  } = await sb
+    .from("gallery_images")
+    .update({
+
+      caption,
+
+      sort_order:
+        sortOrder
+
+    })
+    .eq("id",id);
+
+  if(error){
+
+    alert(error.message);
+
+    return;
+  }
+
+  setMsg(
+    "galleryMsg",
+    "Foto berhasil diperbarui.",
+    "success"
+  );
+}
+
+
+/* =========================================================
+   DELETE PHOTO
+========================================================= */
+
+async function deletePhoto(id){
+
+  if(!confirm(
+    "Hapus foto ini?"
+  )){
+    return;
+  }
+
+  const {
+    data,
+    error
+  } = await sb
+    .from("gallery_images")
+    .select("image_url")
+    .eq("id",id)
+    .single();
+
+  if(error){
+
+    alert(error.message);
+
+    return;
+  }
+
+  const remove =
+    await removeStorageFile(
+      data.image_url,
+      "gallery"
+    );
+
+  if(remove.error){
+
+    console.warn(
+      "File Storage tidak berhasil dihapus:",
+      remove.error
+    );
+  }
+
+  const result =
+    await sb
+      .from("gallery_images")
+      .delete()
+      .eq("id",id);
+
+  if(result.error){
+
+    alert(result.error.message);
+
+    return;
+  }
+
+  await loadPhotos(currentAlbumId);
+  await loadStats();
+}
+
+
+/* =========================================================
+   DELETE ALBUM
+========================================================= */
+
+async function deleteAlbum(id){
+
+  if(!confirm(
+    "Hapus album ini beserta seluruh foto di dalamnya?"
+  )){
+    return;
+  }
+
+  const {
+    data:photos
+  } = await sb
+    .from("gallery_images")
+    .select("image_url")
+    .eq("album_id",id);
+
+  if(photos){
+
+    for(const photo of photos){
+
+      await removeStorageFile(
+        photo.image_url,
+        "gallery"
+      );
+
+    }
+  }
+
+  const {
+    error
+  } = await sb
+    .from("gallery_albums")
+    .delete()
+    .eq("id",id);
+
+  if(error){
+
+    alert(error.message);
+
+    return;
+  }
+
+  await loadAlbums();
+  await loadStats();
+}
+
+
+/* =========================================================
+   SETTINGS
+========================================================= */
+
+async function loadSettings(){
+
+  const {
+    data,
+    error
+  } = await sb
+    .from("site_settings")
+    .select("*")
+    .limit(1)
+    .maybeSingle();
+
+  if(error){
+
+    setMsg(
+      "settingsMsg",
+      error.message,
+      "error"
+    );
+
+    return;
+  }
+
+  if(!data){
+    return;
+  }
+
+  $("setMosqueName").value =
+    data.mosque_name || "";
+
+  $("setTagline").value =
+    data.tagline || "";
+
+  $("setDescription").value =
+    data.description || "";
+
+  $("setAddress").value =
+    data.address || "";
+
+  $("setPhone").value =
+    data.phone || "";
+
+  $("setWhatsapp").value =
+    data.whatsapp || "";
+
+  $("setEmail").value =
+    data.email || "";
+
+  $("setMaps").value =
+    data.google_maps_url || "";
+
+  $("setLogo").value =
+    data.logo_url || "";
+
+  $("setHero").value =
+    data.hero_image_url || "";
+
+  $("setInstagram").value =
+    data.instagram_url || "";
+
+  $("setFacebook").value =
+    data.facebook_url || "";
+
+  $("setYoutube").value =
+    data.youtube_url || "";
+
+  $("setTiktok").value =
+    data.tiktok_url || "";
+
+  $("setEstablished").value =
+    data.established_year || "";
+
+  $("setVision").value =
+    data.vision || "";
+
+  $("setMission").value =
+    data.mission || "";
+}
+
+
+async function saveSettings(){
+
+  const payload = {
+
+    mosque_name:
+      $("setMosqueName").value.trim(),
+
+    tagline:
+      $("setTagline").value.trim(),
+
+    description:
+      $("setDescription").value.trim(),
+
+    address:
+      $("setAddress").value.trim(),
+
+    phone:
+      $("setPhone").value.trim(),
+
+    whatsapp:
+      $("setWhatsapp").value.trim(),
+
+    email:
+      $("setEmail").value.trim(),
+
+    google_maps_url:
+      $("setMaps").value.trim(),
+
+    logo_url:
+      $("setLogo").value.trim(),
+
+    hero_image_url:
+      $("setHero").value.trim(),
+
+    instagram_url:
+      $("setInstagram").value.trim(),
+
+    facebook_url:
+      $("setFacebook").value.trim(),
+
+    youtube_url:
+      $("setYoutube").value.trim(),
+
+    tiktok_url:
+      $("setTiktok").value.trim(),
+
+    established_year:
+      $("setEstablished").value
+        ? Number($("setEstablished").value)
+        : null,
+
+    vision:
+      $("setVision").value.trim(),
+
+    mission:
+      $("setMission").value.trim(),
+
+    updated_at:
+      new Date().toISOString()
+
+  };
+
+  $("saveSettingsBtn").disabled = true;
+
+  setMsg(
+    "settingsMsg",
+    "Menyimpan..."
+  );
+
+  /*
+    site_settings kemungkinan hanya memiliki satu record.
+    Kita ambil record pertama dan update berdasarkan id.
+  */
+
+  const {
+    data:existing,
+    error:findError
+  } = await sb
+    .from("site_settings")
+    .select("id")
+    .limit(1)
+    .maybeSingle();
+
+  if(findError){
+
+    $("saveSettingsBtn").disabled = false;
+
+    setMsg(
+      "settingsMsg",
+      findError.message,
+      "error"
+    );
+
+    return;
+  }
+
+  let result;
+
+  if(existing?.id){
+
+    result =
+      await sb
+        .from("site_settings")
+        .update(payload)
+        .eq("id",existing.id);
+
+  }else{
+
+    result =
+      await sb
+        .from("site_settings")
+        .insert(payload);
+
+  }
+
+  $("saveSettingsBtn").disabled = false;
+
+  if(result.error){
+
+    setMsg(
+      "settingsMsg",
+      result.error.message,
+      "error"
+    );
+
+    return;
+  }
+
+  setMsg(
+    "settingsMsg",
+    "Pengaturan berhasil disimpan.",
+    "success"
+  );
+}
+
+
+/* =========================================================
+   STORAGE
+========================================================= */
+
+async function uploadFile(
+  file,
+  bucket,
+  folder
+){
+
+  const safeName =
+    file.name
+      .replace(/[^a-zA-Z0-9._-]/g,"-");
+
+  const path =
+    `${folder}/${Date.now()}-${Math.random()
+      .toString(36)
+      .slice(2)}-${safeName}`;
+
+  const {
+    error
+  } = await sb.storage
+    .from(bucket)
+    .upload(
+      path,
+      file,
+      {
+        cacheControl:"3600",
+        upsert:false
+      }
+    );
+
+  if(error){
+
+    return {
+      error:error.message
+    };
+  }
+
+  const {
+    data
+  } = sb.storage
+    .from(bucket)
+    .getPublicUrl(path);
+
+  return {
+    publicUrl:
+      data.publicUrl
+  };
+}
+
+
+async function removeStorageFile(
+  publicUrl,
+  bucket
+){
+
+  if(!publicUrl){
+    return {error:null};
+  }
+
+  try{
+
+    const marker =
+      `/storage/v1/object/public/${bucket}/`;
+
+    const index =
+      publicUrl.indexOf(marker);
+
+    if(index === -1){
+
+      return {
+        error:"URL Storage tidak dikenali."
+      };
+    }
+
+    const path =
+      decodeURIComponent(
+        publicUrl.slice(
+          index + marker.length
+        )
+      );
+
+    return await sb.storage
+      .from(bucket)
+      .remove([path]);
+
+  }catch(error){
+
+    return {
+      error:error.message
+    };
+  }
+}
+
+
+/* =========================================================
+   STATISTICS
+========================================================= */
+
+async function countImages(){
+
+  const {
+    count,
+    error
+  } = await sb
+    .from("gallery_images")
+    .select("id",{
+      count:"exact",
+      head:true
+    });
+
+  if(error){
+    return 0;
+  }
+
+  return count || 0;
+}
+
+
+async function loadStats(){
+
+  const [
+    events,
+    albums,
+    images
+  ] = await Promise.all([
+
+    sb
+      .from("events")
+      .select("id",{count:"exact",head:true}),
+
+    sb
+      .from("gallery_albums")
+      .select("id",{count:"exact",head:true}),
+
+    sb
+      .from("gallery_images")
+      .select("id",{count:"exact",head:true})
+
+  ]);
+
+  $("statEvents").textContent =
+    events.count || 0;
+
+  $("statAlbums").textContent =
+    albums.count || 0;
+
+  $("statImages").textContent =
+    images.count || 0;
+}
+
+
+/* =========================================================
+   HELPERS
+========================================================= */
+
+function toDateTimeLocal(value){
+
+  if(!value) return "";
+
+  const d =
+    new Date(value);
+
+  if(Number.isNaN(d.getTime())){
+    return "";
+  }
+
+  const pad =
+    n => String(n).padStart(2,"0");
+
+  return (
+    d.getFullYear() +
+    "-" +
+    pad(d.getMonth()+1) +
+    "-" +
+    pad(d.getDate()) +
+    "T" +
+    pad(d.getHours()) +
+    ":" +
+    pad(d.getMinutes())
+  );
+}
+
+
+/* =========================================================
+   EVENTS
+========================================================= */
+
+$("loginBtn").addEventListener(
+  "click",
+  login
+);
+
+$("logoutBtn").addEventListener(
+  "click",
+  logout
+);
+
+$("saveEventBtn").addEventListener(
+  "click",
+  saveEvent
+);
+
+$("cancelEventBtn").addEventListener(
+  "click",
+  resetEventForm
+);
+
+$("saveAlbumBtn").addEventListener(
+  "click",
+  saveAlbum
+);
+
+$("cancelAlbumBtn").addEventListener(
+  "click",
+  resetAlbumForm
+);
+
+$("uploadGalleryBtn").addEventListener(
+  "click",
+  uploadGallery
+);
+
+$("saveSettingsBtn").addEventListener(
+  "click",
+  saveSettings
+);
+
+$("closePhotoModal").addEventListener(
+  "click",
+  ()=>{
+    $("photoModal").classList.remove("show");
+    currentAlbumId = null;
+  }
+);
+
+$("photoModal").addEventListener(
+  "click",
+  e=>{
+    if(e.target === $("photoModal")){
+      $("photoModal").classList.remove("show");
+      currentAlbumId = null;
+    }
+  }
+);
+
+
+/* =========================================================
+   TABS
+========================================================= */
+
+document
+  .querySelectorAll(".admin-tab")
+  .forEach(button=>{
+
+    button.addEventListener(
+      "click",
+      ()=>{
+
+        document
+          .querySelectorAll(".admin-tab")
+          .forEach(b =>
+            b.classList.remove("active")
+          );
+
+        document
+          .querySelectorAll(".admin-section")
+          .forEach(section =>
+            section.classList.remove("active")
+          );
+
+        button.classList.add("active");
+
+        $(button.dataset.tab)
+          .classList.add("active");
+
+      }
+    );
+
+  });
+
+
+/* =========================================================
+   ENTER LOGIN
+========================================================= */
+
+$("loginPassword").addEventListener(
+  "keydown",
+  e=>{
+    if(e.key === "Enter"){
+      login();
+    }
+  }
+);
+
+
+/* =========================================================
+   MOBILE MENU
+========================================================= */
+
+const hamburger =
+  document.querySelector(".hamb");
+
+const links =
+  document.querySelector(".links");
+
+if(hamburger && links){
+
+  hamburger.addEventListener(
+    "click",
+    ()=>{
+      links.classList.toggle("open");
+    }
+  );
+
+}
+
+
+/* =========================================================
+   YEAR
+========================================================= */
+
+document
+  .querySelectorAll("[data-year]")
+  .forEach(el=>{
+    el.textContent =
+      new Date().getFullYear();
+  });
+
+
+/* =========================================================
+   START
+========================================================= */
+
+document.addEventListener(
+  "DOMContentLoaded",
+  init
+);
+
+</script>
+
+</body>
+</html>
