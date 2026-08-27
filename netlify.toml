@@ -1,0 +1,63 @@
+[build]
+  publish = "."
+  functions = "netlify/functions"
+
+[[redirects]]
+  from = "/admin"
+  to = "/admin.html"
+  status = 200
+
+[[redirects]]
+  from = "/ai"
+  to = "/ai.html"
+  status = 200
+
+[[redirects]]
+  from = "/profil"
+  to = "/profil.html"
+  status = 200
+
+[[redirects]]
+  from = "/sejarah"
+  to = "/sejarah.html"
+  status = 200
+
+[[redirects]]
+  from = "/kegiatan"
+  to = "/kegiatan.html"
+  status = 200
+
+[[redirects]]
+  from = "/idul-fitri"
+  to = "/idul-fitri.html"
+  status = 200
+
+[[redirects]]
+  from = "/idul-adha"
+  to = "/idul-adha.html"
+  status = 200
+
+[[redirects]]
+  from = "/galeri"
+  to = "/galeri.html"
+  status = 200
+
+[[redirects]]
+  from = "/virtual-tour"
+  to = "/virtual-tour.html"
+  status = 200
+
+[[redirects]]
+  from = "/donasi"
+  to = "/donasi.html"
+  status = 200
+
+[[redirects]]
+  from = "/kontak"
+  to = "/kontak.html"
+  status = 200
+
+[[redirects]]
+  from = "/lokasi"
+  to = "/lokasi.html"
+  status = 200
